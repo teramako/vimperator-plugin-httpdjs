@@ -1,0 +1,36 @@
+/*
+ * markdown style
+ */
+:root {
+  background-color: #EFEFEF;
+}
+h2 {
+  border-bottom: thin solid rgb(204, 204, 204);
+}
+code, pre {
+  background-color: #F8F8F8;
+  font: 12px "Bitstream Vera Sans Mono", "Courier", monospace;
+}
+code {
+  border: 3px solid #EAEAEA;
+  margin: 0 2px;
+  padding: 0 5px;
+}
+pre {
+  border: thin solid #CCCCCC;
+  border-radius: 3px;
+  margin: auto 0.5em;
+  padding: 6px 10px;
+}
+pre > code {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+blockquote {
+  border-left: 4px solid #DDDDDD;
+  color: #777777;
+  margin: auto 0.5em;
+  padding: 0 15px;
+}
+
