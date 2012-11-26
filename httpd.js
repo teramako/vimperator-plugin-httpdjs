@@ -30,6 +30,7 @@ var PATH_HANDLERS = {
         return this.currentTab;
 
       var self = this;
+      dumpn("[/markdown] open new tab " + this.URL);
       var tab = gBrowser.loadOneTab(this.URL, { inBackground: false });
       tab.addEventListener("TabClose", function onTabClose() {
         tab.removeEventListener("TabClose", onTabClose, false);
@@ -54,12 +55,11 @@ var PATH_HANDLERS = {
     }, // 3}}}
     // void::handle (Request::request, Response::response) {{{3
     handle: function handle_markdown (request, response) {
-      var startTime = window.performance.now(), endTime;
-      liberator.log("[httpd]handle START /markdown: " + startTime + "ms");
       var markdownHTML = "";
       var title = "httpd.js";
       switch (request.method) {
         case "POST": {
+          dumpn("[/markdown] handle POST");
           let data = "";
           let query = new RequestQuery(request);
           let fileField = query.get("file", null);
@@ -79,10 +79,10 @@ var PATH_HANDLERS = {
               browser.contentDocument.body.innerHTML = markdownHTML;
             }, false);
           }
-          liberator.log("[httpd]handled POST /markdown: " + (window.performance.now() - startTime) + "ms");
         }
         // DONT break;
         case "GET": {
+          dumpn("[/markdown] handle GET");
           if (!this.currentTab)
             throw HTTP_404;
 
@@ -114,7 +114,7 @@ var PATH_HANDLERS = {
           throw HTTP_404;
       }
       endTime = window.performance.now();
-      liberator.log("[httpd]handled END /markddown: Erappsed: " + (endTime - startTime) + "ms");
+      dumpn("[/markdown] handled END");
     }, // 3}}}
   }, // 2}}}
   // PATH: /vimperator {{{2
@@ -146,10 +146,12 @@ var PATH_HANDLERS = {
           type = query.getData("type", "js"); // exec type
       switch (type) {
         case "cmd":
+          dumpn("[/vimperator] execute command: " + arg);
           response.setStatusLine("1.1", 204, "No Content");
           this.execCommand(arg);
           break;
         case "js": {
+          dumpn("[/vimperator] execute javascript: " + arg);
           let text;
           let isHTML = (query.getData("ot", "text") === "html"); // output-type
           if (isHTML) {
@@ -539,6 +541,8 @@ function CC (contractID, interfaceName, initializer) {
     return instance;
   }
 } // 1}}}
+function dumpn() {}
+
 // createServer () {{{1
 function createServer () {
   var httpd = new HttpServer();
@@ -566,6 +570,7 @@ function createServer () {
     let file = utils.getFileFromRoot(["httpd.js"]);
     let tmp = Cu.import(services.get("io").newFileURI(file).spec, __context__);
     tmp.DEBUG = tmp.DEBUG_TIMESTAMP = SERVER_CONFIG.debug;
+    dumpn = tmp.dumpn;
   }
   modules.httpd = createServer();
   if (SERVER_CONFIG.autoStart)
