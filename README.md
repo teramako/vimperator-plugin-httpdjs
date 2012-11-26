@@ -25,6 +25,8 @@ Vimperator で Web サーバーを立てるよ！
 
 `POST`メソッドで`file`パラメータにデータを添えるとタブに Markdown を HTML 化してレンダリングするよ。
 
+`DELETE`メソッドで開いているタブを閉じるよ。
+
 ###example
 
     cat <<EOM | curl -X POST -F "file=@-" http://localhost:8090/markdown
@@ -32,4 +34,6 @@ Vimperator で Web サーバーを立てるよ！
 
       * abc
     EOM
+
+    curl -X DELETE http://localhost:8090/markdown
 
