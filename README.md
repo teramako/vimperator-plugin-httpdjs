@@ -2,6 +2,9 @@
 
 Vimperator で Web サーバーを立てるよ！
 
+動作には [Mozillaのhttpd.js][mozhttpdjs] が必要です。
+`make -C httpd httpd.js` をして下さい。
+
 ##/vimperator
 
 `POST`で`q`パラメータに JavaScript または Vimperator コマンドを入れると、実行して結果を返す
@@ -27,6 +30,9 @@ Vimperator で Web サーバーを立てるよ！
 
 `DELETE`メソッドで開いているタブを閉じるよ。
 
+動作には [PageDown][pagedown] が必要です。
+`make -C httpd pagedown` をして下さい。(Marcurialリポジトリから取得します)
+
 ###example
 
     cat <<EOM | curl -X POST -F "file=@-" http://localhost:8090/markdown
@@ -36,4 +42,7 @@ Vimperator で Web サーバーを立てるよ！
     EOM
 
     curl -X DELETE http://localhost:8090/markdown
+
+[mozhttpdjs]: http://mxr.mozilla.org/mozilla-central/source/netwerk/test/httpserver/httpd.js
+[pagedown]: http://code.google.com/p/pagedown/
 
