@@ -552,8 +552,6 @@ function CC (contractID, interfaceName, initializer) {
 // createServer () {{{1
 function createServer () {
   var httpd = new HttpServer();
-  httpd.identity.setPrimary("http", "192.168.11.2", SERVER_CONFIG.port)
-  //httpd.identity.add("http", "localhost", SERVER_CONFIG.port);
   for (var path in PATH_HANDLERS) {
     httpd.registerPathHandler(path, PATH_HANDLERS[path]);
   }
