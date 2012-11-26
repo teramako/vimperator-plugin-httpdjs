@@ -64,7 +64,7 @@ var PATH_HANDLERS = {
           let query = new RequestQuery(request);
           let fileField = query.get("file", null);
           if (fileField)
-            data = fileField.toString();
+            data = fileField.toString("UTF-8");
 
           if (data)
             markdownHTML = this.markdownConverter.makeHtml(data);
@@ -142,8 +142,8 @@ var PATH_HANDLERS = {
           throw HTTP_404;
       }
       var query = new RequestQuery(request);
-      var arg = query.get("q", "").toString(), // query
-          type = query.get("type", "js").toString(); // exec type
+      var arg = query.getData("q", ""), // query
+          type = query.getData("type", "js"); // exec type
       switch (type) {
         case "cmd":
           response.setStatusLine("1.1", 204, "No Content");
@@ -151,7 +151,7 @@ var PATH_HANDLERS = {
           break;
         case "js": {
           let text;
-          let isHTML = (query.get("ot", "text").toString() === "html"); // output-type
+          let isHTML = (query.getData("ot", "text") === "html"); // output-type
           if (isHTML) {
             let title = util.escapeHTML(arg);
             text = ['<!DOCTYPE html>',
@@ -246,9 +246,13 @@ RequestQuery.prototype = {
         throw HTTP_400;
     }
   }, // 3}}}
+  // String::getData (any::key [, any::defaultValue]) {{{3
+  getData: function RB_getData (key, defaultValue) {
+    return this.data.has(key) ? this.data.get(key).data : defaultValue;
+  }, // 3}}}
   // any::get (any::key [, any:defaultValue]) {{{3
   get: function RB_get (key, defaultValue) {
-    return this.data.has(key) ? this.data.get(key) : defaultValue;
+    return this.data.has(key) ? this.data.get(key) : null;
   }, // 3}}}
   // void::set (any::key,  any:defaultValue) {{{3
   set: function RB_set (key, value) {
@@ -313,7 +317,7 @@ RequestQuery.prototype = {
       buffer = buffer.substr(index + 4);
       // BODY
       index = buffer.indexOf(CRLF + boundary);
-      currentField.setData(buffer.substr(0, index));
+      currentField.data = buffer.substr(0, index);
       buffer = buffer.substr(index + 2);
       // CHECK END
       if (buffer.startsWith(boundary + "--")) {
@@ -392,31 +396,26 @@ HeaderValue.prototype = {
  */
 function RequestBodyField (isFormData, name, data) {
   this.name = name || "";
-  this._data = null;
+  this._data = "";
   this.isFormData = !!isFormData;
-  this.isConverted = false;
   if (data)
-    this.setData(data);
+    this.data = data;
 }
 RequestBodyField.prototype = {
   // ReponseBodyField's default properties {{{3
   contentType: "application/octetstream",
   fileName: "",
   // 3}}}
-  // String::setData (String::data) {{{3
-  setData: function RBF_setData (data) {
-    if (this.isFormData) {
-      if (this.contentType !== "application/octetstream" &&
-          this.charset &&
-          this.contentType.startsWith("text/")) {
-        data = UnicodeConverter(this.charset).ConvertToUnicode(data);
-        this.isConverted = true;
-      }
-    } else {
-      data = decodeURIComponent(data);
-      this.isConverted = true;
+  // String::getter data {{{3
+  get data() {
+    return this._data;
+  }, // 3}}}
+  // String::setter data {{{3
+  set data(val) {
+    if (!this.isFormData) {
+      val = decodeURIComponent(val);
     }
-    return this._data = data;
+    return this._data = val;
   }, // 3}}}
   // void::setHeaders (String::lines) {{{3
   setHeaders: function RBF_setHeaders (lines) {
@@ -464,20 +463,11 @@ RequestBodyField.prototype = {
   }, // 3}}}
   // String::toString ([String::charset]) {{{3
   toString: function RBF_toString (charset) {
-    if (this.isConverted && typeof this._data === "string")
-      return this._data;
+    charset = charset || this.charset || "";
+    if (charset)
+      return UnicodeConverter(charset).ConvertToUnicode(this._data);
 
-    var data;
-    if (this.isFormData) {
-      if (!charset)
-        charset = this.charset || "UTF-8";
-      data = UnicodeConverter(charset).ConvertToUnicode(this._data);
-    } else {
-      data = decodeURIComponent(this._data);
-    }
-
-    this.isConverted = true;
-    return this._data = data;
+    return this._data;
   }, // 3}}}
 };
 // 2}}}
