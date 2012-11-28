@@ -64,7 +64,7 @@ var PATH_HANDLERS = {
           let query = new RequestQuery(request);
           let fileField = query.get("file", null);
           if (fileField)
-            data = fileField.toString("UTF-8");
+            data = fileField.isFormData ? fileField.toString("UTF-8") : fileField.data;
 
           if (data)
             markdownHTML = this.markdownConverter.makeHtml(data);

@@ -35,7 +35,7 @@ Vimperator で Web サーバーを立てるよ！
 
 ###example
 
-    cat <<EOM | curl -X POST -F "file=@-" http://localhost:8090/markdown
+    cat <<EOM | curl -X POST --data-urlencode file@-" http://localhost:8090/markdown
     #タイトル
 
       * abc

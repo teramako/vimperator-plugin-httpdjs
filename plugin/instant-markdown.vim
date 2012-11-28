@@ -6,7 +6,7 @@ function! UpdateMarkdown()
   if (b:last_number_of_changes == "" || b:last_number_of_changes != b:changedtick)
     let b:last_number_of_changes = b:changedtick
     let current_buffer = join(getbufline("%", 1, "$"), "\n")
-    silent! exec "silent! !echo " . escape(shellescape(current_buffer), '%!#') . " | curl -X POST -F 'file=@-' " . s:URL . " &>/dev/null &"
+    silent! exec "silent! !echo " . escape(shellescape(current_buffer), '%!#') . " | curl -X POST --data-urlencode 'file@-' " . s:URL . " &>/dev/null &"
   endif
 endfunction
 function! OpenMarkdown()
