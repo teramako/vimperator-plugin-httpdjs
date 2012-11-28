@@ -113,7 +113,6 @@ var PATH_HANDLERS = {
         default:
           throw HTTP_404;
       }
-      endTime = window.performance.now();
       dumpn("[/markdown] handled END");
     }, // 3}}}
   }, // 2}}}
