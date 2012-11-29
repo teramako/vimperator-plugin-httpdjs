@@ -2,7 +2,7 @@
  * markdown style
  */
 :root {
-  background-color: #EFEFEF;
+  background-color: #FCFCFC;
 }
 h2 {
   border-bottom: thin solid rgb(204, 204, 204);
@@ -12,7 +12,7 @@ code, pre {
   font: 12px "Bitstream Vera Sans Mono", "Courier", monospace;
 }
 code {
-  border: 3px solid #EAEAEA;
+  border: thin solid #EAEAEA;
   margin: 0 2px;
   padding: 0 5px;
 }
