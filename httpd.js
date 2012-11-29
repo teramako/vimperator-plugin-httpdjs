@@ -6,6 +6,13 @@
 /** @namespace */
 var SERVER_CONFIG = {
   port: 8090,
+  /** 接続をloopback(localhost,127.0.0.1)からのみ受け付ける */
+  loopbackOnly: true,
+  /**
+   * "localhost", "127.0.0.1" 以外の自身のhost名またはIPアドレス
+   * loopbackOnly=false 時に使用される
+   */
+  hosts: ["192.168.11.2"],
   autoStart: true,
   debug: false,
 }; // 1}}}
@@ -181,8 +188,7 @@ var PATH_HANDLERS = {
       }
     }, // 3}}}
   }, // 2}}}
-};
-// 1}}}
+}; // 1}}}
 // == ERROR_HANDLERS == {{{1
 // =============================================================================
 /**
@@ -194,8 +200,7 @@ var PATH_HANDLERS = {
  * }
  */
 var ERROR_HANDLERS = {
-};
-// 1}}}
+}; // 1}}}
 
 // == Request body parser == {{{1
 // =============================================================================
@@ -551,6 +556,13 @@ function createServer () {
   for (var code in ERROR_HANDLERS) {
     httpd.registerErrorHandler(code, ERROR_HANDLERS[code]);
   }
+  if (!SERVER_CONFIG.loopbackOnly && SERVER_CONFIG.hosts[0]) {
+    let {port, hosts} = SERVER_CONFIG;
+    httpd._identity.setPrimary("http", hosts[0], port);
+    for (let i = 1, len = hosts.length; i < len; ++i) {
+      httpd._identity.add("http", hosts[i], port);
+    }
+  }
   return httpd;
 } /// 1}}}
 
@@ -571,9 +583,13 @@ function createServer () {
     tmp.DEBUG = tmp.DEBUG_TIMESTAMP = SERVER_CONFIG.debug;
     dumpn = tmp.dumpn;
   }
-  modules.httpd = createServer();
-  if (SERVER_CONFIG.autoStart)
-    modules.httpd.start(SERVER_CONFIG.port);
+  var httpd = modules.httpd = createServer();
+  if (SERVER_CONFIG.autoStart) {
+    if (SERVER_CONFIG.loopbackOnly || !SERVER_CONFIG.hosts[0])
+      httpd.start(SERVER_CONFIG.port);
+    else
+      httpd._start(SERVER_CONFIG.port, SERVER_CONFIG.hosts[0]);
+  }
 }()); // 1}}}
 
 
