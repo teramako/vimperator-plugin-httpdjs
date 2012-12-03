@@ -16,6 +16,11 @@ var SERVER_CONFIG = {
    * loopbackOnly=false 時に使用される
    */
   hosts: ["192.168.11.2"],
+  /**
+   * DocumentRoot となるディレクトリパス(PATH_HANDLERS の登録の方が優先される)
+   * 空の場合は使用されない
+   */
+  documentRoot: "",
   autoStart: true,
   debug: false,
 }; // 1}}}
@@ -565,6 +570,11 @@ function createServer () {
     for (let i = 1, len = hosts.length; i < len; ++i) {
       httpd._identity.add("http", hosts[i], port);
     }
+  }
+  if (SERVER_CONFIG.documentRoot) {
+    let rootDir = io.File(SERVER_CONFIG.documentRoot);
+    if (rootDir.exists() && rootDir.isDirectory())
+      httpd.registerDirectory("/", rootDir);
   }
   return httpd;
 } /// 1}}}
