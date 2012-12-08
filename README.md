@@ -33,7 +33,7 @@ Vimperator で Web サーバーを立てるよ！
 動作には [PageDown][pagedown] が必要です。
 `make -C httpd pagedown` をして下さい。(Marcurialリポジトリから取得します)
 
-また、[pluginディレクトリ][vim-plugin]に vim 用のプラグインがあります。テキトウに`~/.vim/plugin`下にでも放り込んでください。
+また、[instant-markdown-vim] に vim 用のプラグインがあります。テキトウに`~/.vim/bundle`下にでも放り込んでください。
 
 ###example
 
@@ -47,5 +47,5 @@ Vimperator で Web サーバーを立てるよ！
 
 [mozhttpdjs]: http://mxr.mozilla.org/mozilla-central/source/netwerk/test/httpserver/httpd.js
 [pagedown]: http://code.google.com/p/pagedown/
-[vim-plugin]: https://github.com/teramako/vimperator-plugin-httpdjs/tree/master/plugin
+[instant-markdown-vim]: https://github.com/teramako/instant-markdown-vim
 
