@@ -22,7 +22,9 @@ if !executable('curl')
 endif
 
 
-let s:URL = 'http://localhost:8090/markdown'
+let s:host = get(g:, 'instant_markdown_host', 'localhost')
+let s:port = get(g:, 'instant_markdown_port', 8090)
+let s:URL = 'http://'.s:host.':'.s:port.'/markdown'
 
 function! UpdateMarkdown()
   if (b:last_number_of_changes == "" || b:last_number_of_changes != b:changedtick)
