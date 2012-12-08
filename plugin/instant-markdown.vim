@@ -1,4 +1,19 @@
+" vim:foldmethod=marker:fen:
+"
 " inspired from https://github.com/suan/vim-instant-markdown
+
+scriptencoding utf-8
+" Load Once {{{
+if (exists('g:loaded_instant_markdown') && g:loaded_instant_markdown) || &cp
+    finish
+endif
+let g:loaded_instant_markdown = 1
+" }}}
+" Saving 'cpoptions' {{{
+let s:save_cpo = &cpo
+set cpo&vim
+" }}}
+
 
 let s:URL = 'http://localhost:8090/markdown'
 
@@ -23,3 +38,7 @@ autocmd CursorMoved,CursorMovedI,CursorHold,CursorHoldI *.{md,mkd,mkdn,mdown,mar
 autocmd BufWinLeave *.{md,mkd,mkdn,mdown,mark*} silent call CloseMarkdown()
 autocmd BufWinEnter *.{md,mkd,mkdn,mdown,mark*} silent call OpenMarkdown()
 
+
+" Restore 'cpoptions' {{{
+let &cpo = s:save_cpo
+" }}}
