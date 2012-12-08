@@ -26,9 +26,9 @@ endfunction
 function! instant_markdown#open()
   augroup instant-markdown
     autocmd!
-    autocmd CursorMoved,CursorMovedI,CursorHold,CursorHoldI * silent call s:update_markdown()
-    autocmd BufWinLeave * silent call instant_markdown#close()
-    autocmd BufWinEnter * silent call instant_markdown#open()
+    autocmd CursorMoved,CursorMovedI,CursorHold,CursorHoldI <buffer> silent call s:update_markdown()
+    autocmd BufWinLeave <buffer> silent call instant_markdown#close()
+    autocmd BufWinEnter <buffer> silent call instant_markdown#open()
   augroup END
 
   let b:last_number_of_changes = ""
