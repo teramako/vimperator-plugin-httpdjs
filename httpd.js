@@ -209,7 +209,45 @@ var PATH_HANDLERS = {
  */
 var ERROR_HANDLERS = {
 }; // 1}}}
+// == Vimperator Commands == {{{1
+// =============================================================================
+commands.addUserCommand(["httpd"], "http server",
+  function showStatus() {
+    commandline.echo("[httpd] " + (modules.httpd._scoketClosed ? "stopped" : "running"));
+  }, {
+    subCommands: [
+      new Command(["start"], "start http server",
+        function httpdStart(args) {
+          liberator.assert(modules.httpd._scoketClosed, "[httpd] already started");
 
+          var port = args["--port"] ? args["--port"] : SERVER_CONFIG.port;
+          modules.httpd.start(port);
+          if ("--root" in args) {
+            let dir = io.File(args["--root"]);
+            if (dir.exists() && dir.isDirectory()) {
+              modules.httpd.registerDirectory("/", dir);
+            }
+          }
+        },{
+          options: [
+            [["--port", "-P"], commands.OPTION_INT],
+            [["--root", "-R"], commands.OPTION_STRING, null, function (context, args) {
+                completion.file(context);
+                return context;
+              }]
+          ],
+        }),
+      new Command(["stop"], "stop http server",
+        function httpdStop() {
+          liberator.assert(!modules.httpd._scoketClosed, "[httpd] already stopped");
+          modules.httpd.stop(function() {
+            liberator.echomsg("[httpd] stopped http server");
+          });
+        })
+    ],
+  },
+  true);
+// 1}}}
 // == Request body parser == {{{1
 // =============================================================================
 var BinaryInputStream = CC("@mozilla.org/binaryinputstream;1", "nsIBinaryInputStream", "setInputStream");
@@ -604,5 +642,4 @@ function createServer () {
       httpd._start(SERVER_CONFIG.port, SERVER_CONFIG.hosts[0]);
   }
 }()); // 1}}}
-
 
