@@ -14,6 +14,13 @@ let s:save_cpo = &cpo
 set cpo&vim
 " }}}
 
+if !executable('curl')
+    echohl ErrorMsg
+    echomsg "instant-markdown-vim: please install 'curl' command in your PATH!"
+    echohl None
+    finish
+endif
+
 
 let s:URL = 'http://localhost:8090/markdown'
 
