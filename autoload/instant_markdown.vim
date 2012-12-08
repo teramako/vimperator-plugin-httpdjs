@@ -35,6 +35,10 @@ function! instant_markdown#open()
   call s:update_markdown()
 endfunction
 function! instant_markdown#close()
+  augroup instant-markdown
+    autocmd!
+  augroup END
+
   silent! exec "silent! !curl -s -X DELETE " . s:URL . " &>/dev/null &"
 endfunction
 
