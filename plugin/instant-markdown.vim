@@ -34,18 +34,25 @@ function! UpdateMarkdown()
   endif
 endfunction
 function! OpenMarkdown()
+  augroup instant-markdown
+    autocmd!
+    autocmd CursorMoved,CursorMovedI,CursorHold,CursorHoldI * silent call UpdateMarkdown()
+    autocmd BufWinLeave * silent call CloseMarkdown()
+    autocmd BufWinEnter * silent call OpenMarkdown()
+  augroup END
+
   let b:last_number_of_changes = ""
+  call UpdateMarkdown()
 endfunction
 function! CloseMarkdown()
   silent! exec "silent! !curl -s -X DELETE " . s:URL . " &>/dev/null &"
 endfunction
 
 " Only README.md is recognized by vim as type markdown. Do this to make ALL .md files markdown
-autocmd BufWinEnter *.{md,mkd,mkdn,mdown,mark*} silent setf markdown
+" autocmd BufWinEnter *.{md,mkd,mkdn,mdown,mark*} silent setf markdown
 
-autocmd CursorMoved,CursorMovedI,CursorHold,CursorHoldI *.{md,mkd,mkdn,mdown,mark*} silent call UpdateMarkdown()
-autocmd BufWinLeave *.{md,mkd,mkdn,mdown,mark*} silent call CloseMarkdown()
-autocmd BufWinEnter *.{md,mkd,mkdn,mdown,mark*} silent call OpenMarkdown()
+command! -bar InstantMarkdownStart call OpenMarkdown()
+command! -bar InstantMarkdownStop  call CloseMarkdown()
 
 
 " Restore 'cpoptions' {{{
