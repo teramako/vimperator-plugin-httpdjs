@@ -213,12 +213,13 @@ var ERROR_HANDLERS = {
 // =============================================================================
 commands.addUserCommand(["httpd"], "http server",
   function showStatus() {
-    commandline.echo("[httpd] " + (modules.httpd._scoketClosed ? "stopped" : "running"));
+    commandline.echo("[httpd] " + (modules.httpd._socketClosed ? "stopped" : "running"));
   }, {
     subCommands: [
+      // subcommand: start {{{2
       new Command(["start"], "start http server",
         function httpdStart(args) {
-          liberator.assert(modules.httpd._scoketClosed, "[httpd] already started");
+          liberator.assert(modules.httpd._socketClosed, "[httpd] already started");
 
           var port = args["--port"] ? args["--port"] : SERVER_CONFIG.port;
           modules.httpd.start(port);
@@ -236,14 +237,15 @@ commands.addUserCommand(["httpd"], "http server",
                 return context;
               }]
           ],
-        }),
+        }), // 2}}}
+      // subcommand: stop {{{2
       new Command(["stop"], "stop http server",
         function httpdStop() {
-          liberator.assert(!modules.httpd._scoketClosed, "[httpd] already stopped");
+          liberator.assert(!modules.httpd._socketClosed, "[httpd] already stopped");
           modules.httpd.stop(function() {
             liberator.echomsg("[httpd] stopped http server");
           });
-        })
+        }), // 2}}}
     ],
   },
   true);
