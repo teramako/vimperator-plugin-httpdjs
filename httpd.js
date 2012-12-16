@@ -35,6 +35,173 @@ var SERVER_CONFIG = {
  * }
  */
 var PATH_HANDLERS = {
+  // PATH: /html {{{2
+  /*
+   * example:
+   *   http://localhost:8090/html
+   *   POST data:
+   *     path: full path of the file (ex. "/home/users/example.md")
+   *     type: convert type (ex. "plain", "markdown")
+   *     file: file data
+   */
+  "/html": {
+    DIR: "html",
+    // Object::registerType (String::aTypeName, [Object|Function]::aConverter) {{{3
+    registerType: function html_registerType(aTypeName, aConverter) {
+      var converter;
+      if (typeof aConverter === "object" &&
+          typeof aConverter.convert === "function")
+        converter = aConverter;
+      else if (typeof aConverter === "function")
+        converter = { convert: aConverter };
+      else
+        throw TypeError("aConverter mulst be an Object has 'convert' function or a Function.")
+
+      return this.types[aTypeName] = converter;
+    }, // 3}}}
+    types: {
+      plain: { convert: function (data) { return data; }, },
+    },
+    tabMap: new window.Map,
+    // Element::getTab (String::aTypeName, String::aBaseURL) {{{3
+    getTab: function html_getTab (aTypeName, aBaseURL) {
+      if (this.tabMap.has(aBaseURL))
+        return this.tabMap.get(aBaseURL);
+
+      if (!aTypeName || !this.types[aTypeName])
+        return null;
+
+      var self = this,
+          type = this.types[aTypeName],
+          url = this.getURL(aTypeName, type),
+          tab = gBrowser.loadOneTab(url, { inBackground: false });
+      dumpn("[" + aTypeName + "] open new tab " + url);
+      tab.addEventListener("TabClose", function onTabClose() {
+        tab.removeEventListener("TabClose", onTabClose, false);
+        self.tabMap.delete(aBaseURL);
+      }, false);
+      this.tabMap.set(aBaseURL, tab);
+      return tab;
+    }, // 3}}}
+    // String::getURL (String::aTypeName, Object::aType) {{{3
+    getURL: function html_getURL (aTypeName, aType) {
+      if (aType.url)
+        return aType.url;
+
+      var file = utils.getFileFromRoot([this.DIR, aTypeName + ".html"]);
+      if (!file.exists())
+        file = utils.getFileFromRoot([this.DIR, "plain.html"]);
+      return aType.url = services.get("io").newFileURI(file).spec;
+    }, // 3}}}
+    // void::handle (Request::request, Response::response) {{{3
+    handle: function html_handle (request, response) {
+      var query = new RequestQuery(request);
+      var typeName = query.getData("type", "plain"),
+          filePath = query.getData("path", "").trim(),
+          baseURL = "";
+
+      if (filePath)
+        baseURL = services.get("io").newFileURI(io.File(filePath)).spec;
+
+      var tab, html = "";
+
+      switch (request.method) {
+        // POST {{{4
+        case "POST": {
+          if (typeName && typeName in this.types) {
+            let data = "";
+            let type = this.types[typeName];
+            let fileField = query.get("file", null);
+            if (fileField)
+              data = fileField.isFormData ? fileField.toString("UTF-8") : fileField.data;
+
+            if (data) {
+              try {
+                html = type.convert(data);
+              } catch (e) {
+                Cu.reportError(e);
+                throw e;
+              }
+            }
+
+            tab = this.getTab(typeName, baseURL);
+            let browser = tab.linkedBrowser,
+                doc = browser.contentDocument;
+            if (doc.readyState == "complete") {
+              let base = doc.querySelector("head > base");
+              if (base) {
+                if (baseURL)
+                  base.setAttribute("href", baseURL);
+                else
+                  doc.head.removeChild(base);
+              } else if (baseURL) {
+                base = doc.createElement("base");
+                base.setAttribute("href", baseURL);
+                doc.head.appendChild(base);
+              }
+              let main = doc.getElementById("main");
+              (main || doc.body).innerHTML = html;
+            } else {
+              browser.addEventListener("DOMContentLoaded", function onLoad() {
+                browser.removeEventListener("DOMContentLoaded", onLoad, false);
+                let doc = browser.contentDocument;
+                if (baseURL) {
+                  let base = doc.createElement("base");
+                  base.setAttribute("href", baseURL);
+                  doc.head.appendChild(base);
+                }
+                (doc.getElementById("main") || doc.body).innerHTML = html;
+              }, false);
+            }
+          } else {
+          }
+        } // 4}}}
+        // GET {{{4
+        case "GET": {
+          if (!tab) {
+            //if (typeName && typeName in this.types) {
+            //  tab = this.types[typeName].tab;
+            //}
+            tab = this.tabMap.get(baseURL);
+          }
+          if (!tab)
+            throw HTTP_404;
+
+          let doc = tab.linkedBrowser.contentDocument;
+          if (!html) {
+            html = (doc.getElementById("main") || doc.body).innerHTML;
+          }
+          let title = doc.title || "httpd.js";
+          response.setStatusLine(request.httpVersion, 200, "OK");
+          response.setHeader("Content-Type", "text/html; charset=utf-8", false);
+          let body = [
+            '<!DOCTYPE html>',
+            '<html xmlns="http://www.w3.org/1999/xhtml">',
+            '<head><meta charset="utf-8"/><title>' + title + '</title></head>',
+            '<body>',
+            html,
+            '</body>',
+            '</html>', ''
+          ].join("\n");
+
+          response.write(UnicodeConverter("UTF-8").ConvertFromUnicode(body));
+          break;
+        } // 4}}}
+        // DELETE {{{4
+        case "DELETE": {
+          response.setStatusLine(request.httpVersion, 202, "Accepted");
+          //let tab = (typeName && typeName in this.types) ? this.types[typeName].tab : null;
+          let tab = this.tabMap.get(baseURL);
+          if (tab) {
+            gBrowser.removeTab(tab);
+          }
+          break;
+        } // 4}}}
+        default:
+          throw HTTP_405;
+      }
+    }, // 3}}}
+  }, // 2}}}
   // PATH: /markdown {{{2
   "/markdown": {
     DIR: "markdown",
@@ -197,6 +364,20 @@ var PATH_HANDLERS = {
     }, // 3}}}
   }, // 2}}}
 }; // 1}}}
+// == /html registerType == {{{1
+PATH_HANDLERS["/html"].registerType("markdown", {
+  get markdownConverter() {
+    var tmp = {},
+        file = utils.getFileFromRoot(["markdown", "pagedown", "Markdown.Converter.js"]);
+    services.get("scriptloader").loadSubScript(services.get("io").newFileURI(file).spec, tmp);
+    delete this.markdownConverter;
+    return this.markdownConverter = new tmp.Markdown.Converter();
+  },
+  convert: function convertMarkdown (text) {
+    return this.markdownConverter.makeHtml(text);
+  },
+});
+// 1}}}
 // == ERROR_HANDLERS == {{{1
 // =============================================================================
 /**

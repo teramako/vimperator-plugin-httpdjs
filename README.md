@@ -45,6 +45,30 @@ Vimperator で Web サーバーを立てるよ！
 
     curl -X DELETE http://localhost:8090/markdown
 
+##/html
+
+`POST`メソッドで送られた`file`パラメータのデータを、`type`に沿ってHTMLにコンバートしてレンダリングする。
+`path`パラメータにファイルのフルパスを添えると、`<base href="...">` が付加されて、相対パスが有効になる。
+
+ * `type`: コンバートするタイプ
+   * ex.) `plain`, `markdown`
+ * `file`: 入力データ
+ * `path`: ファイルのフルパス
+
+###example
+
+    cat <<EOM | curl -X POST --data-urlencode file=@- -d type=markdown --data-urlencode "path=$PWD" http://localhost:8090/html
+    #タイトル
+
+     * abc
+    EOM
+
+    curl -X DELETE --data-urlencode "path=$PWD" http://localhost:8090/html
+
+Cygwin 時は`path`パラメータを `cygpath -wa` で変換する必要があるでしょう。
+
+    echo "OK" | curl -X POST ... --data-urlencode "path=`cygpath -wa .`" http://localhost:8090/html
+
 [mozhttpdjs]: http://mxr.mozilla.org/mozilla-central/source/netwerk/test/httpserver/httpd.js
 [pagedown]: http://code.google.com/p/pagedown/
 [instant-markdown-vim]: https://github.com/teramako/instant-markdown-vim
