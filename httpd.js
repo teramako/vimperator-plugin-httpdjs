@@ -96,7 +96,7 @@ var PATH_HANDLERS = {
     // void::handle (Request::request, Response::response) {{{3
     handle: function html_handle (request, response) {
       var query = new RequestQuery(request);
-      var typeName = query.getData("type", null),
+      var typeName = query.getData("type", "plain"),
           filePath = query.getData("path", "").trim(),
           baseURL = "";
 
