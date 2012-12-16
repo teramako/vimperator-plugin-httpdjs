@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8"/>
+  <title>interactive Markdown</title>
+  <link rel="StyleSheet" href="markdown.css"/>
+</head>
+<body>
+<section id="main"></section>
+</body>
+<script>
+var observer = new MutationObserver(function(mutations) {
+  var m = mutations[0];
+  var h1 = document.querySelector("h1");
+  if (h1)
+    document.title = h1.textContent;
+});
+observer.observe(document.body, { childList: true });
+window.addEventListener("unload", function onUnload() {
+  window.removeEventListener("unload", onUnload, false);
+  observer.disconnect();
+}, false);
+</script>
+</html>

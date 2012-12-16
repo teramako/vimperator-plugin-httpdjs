@@ -364,6 +364,20 @@ var PATH_HANDLERS = {
     }, // 3}}}
   }, // 2}}}
 }; // 1}}}
+// == /html registerType == {{{1
+PATH_HANDLERS["/html"].registerType("markdown", {
+  get markdownConverter() {
+    var tmp = {},
+        file = utils.getFileFromRoot(["markdown", "pagedown", "Markdown.Converter.js"]);
+    services.get("scriptloader").loadSubScript(services.get("io").newFileURI(file).spec, tmp);
+    delete this.markdownConverter;
+    return this.markdownConverter = new tmp.Markdown.Converter();
+  },
+  convert: function convertMarkdown (text) {
+    return this.markdownConverter.makeHtml(text);
+  },
+});
+// 1}}}
 // == ERROR_HANDLERS == {{{1
 // =============================================================================
 /**
