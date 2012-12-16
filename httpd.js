@@ -797,6 +797,8 @@ function createServer () {
     if (rootDir.exists() && rootDir.isDirectory())
       httpd.registerDirectory("/", rootDir);
   }
+  httpd.PATH_HANDLERS = PATH_HANDLERS;
+  httpd.config = SERVER_CONFIG;
   return httpd;
 } /// 1}}}
 
