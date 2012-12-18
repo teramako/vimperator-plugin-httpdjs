@@ -380,6 +380,19 @@ var HTML_HANDLER_TYPES = {
       return this.markdownConverter.makeHtml(text);
     },
   },
+  hatena: {
+     get TextHatena() {
+       var tmp = {},
+           file = utils.getFileFromRoot(["text-hatena", "text-hatena.js"]);
+       Cu.import(services.get("io").newFileURI(file).spec, tmp);
+       delete this.TextHatena;
+       return this.TextHatena = new tmp.TextHatena({ sectionanchor: "\u25A0" });
+     },
+     convert: function convertHatena (text) {
+       this.TextHatena.parse(text);
+       return this.TextHatena.html();
+     },
+   },
 };
 // 1}}}
 // == ERROR_HANDLERS == {{{1
