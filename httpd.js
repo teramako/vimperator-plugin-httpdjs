@@ -59,9 +59,7 @@ var PATH_HANDLERS = {
 
       return this.types[aTypeName] = converter;
     }, // 3}}}
-    types: {
-      plain: { convert: function (data) { return data; }, },
-    },
+    types: {},
     tabMap: new window.Map,
     // Element::getTab (String::aTypeName, String::aBaseURL) {{{3
     getTab: function html_getTab (aTypeName, aBaseURL) {
@@ -365,18 +363,24 @@ var PATH_HANDLERS = {
   }, // 2}}}
 }; // 1}}}
 // == /html registerType == {{{1
-PATH_HANDLERS["/html"].registerType("markdown", {
-  get markdownConverter() {
-    var tmp = {},
-        file = utils.getFileFromRoot(["markdown", "pagedown", "Markdown.Converter.js"]);
-    services.get("scriptloader").loadSubScript(services.get("io").newFileURI(file).spec, tmp);
-    delete this.markdownConverter;
-    return this.markdownConverter = new tmp.Markdown.Converter();
+// /html?type=... に入れるタイプとコンバータ
+var HTML_HANDLER_TYPES = {
+  plain: {
+    convert: function convertPlainHTML (text) { return text; }
   },
-  convert: function convertMarkdown (text) {
-    return this.markdownConverter.makeHtml(text);
+  markdown: {
+    get markdownConverter() {
+      var tmp = {},
+          file = utils.getFileFromRoot(["markdown", "pagedown", "Markdown.Converter.js"]);
+      services.get("scriptloader").loadSubScript(services.get("io").newFileURI(file).spec, tmp);
+      delete this.markdownConverter;
+      return this.markdownConverter = new tmp.Markdown.Converter();
+    },
+    convert: function convertMarkdown (text) {
+      return this.markdownConverter.makeHtml(text);
+    },
   },
-});
+};
 // 1}}}
 // == ERROR_HANDLERS == {{{1
 // =============================================================================
@@ -786,6 +790,9 @@ function createServer () {
   }
   for (var code in ERROR_HANDLERS) {
     server.registerErrorHandler(code, ERROR_HANDLERS[code]);
+  }
+  for (var type in HTML_HANDLER_TYPES) {
+    PATH_HANDLERS["/html"].registerType(type, HTML_HANDLER_TYPES[type]);
   }
   if (!SERVER_CONFIG.loopbackOnly && SERVER_CONFIG.hosts[0]) {
     let {port, hosts} = SERVER_CONFIG;
