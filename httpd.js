@@ -394,20 +394,21 @@ var ERROR_HANDLERS = {
 // =============================================================================
 commands.addUserCommand(["httpd"], "http server",
   function showStatus() {
-    commandline.echo("[httpd] " + (modules.httpd._socketClosed ? "stopped" : "running"));
+    commandline.echo("[httpd] " + (modules.httpd.SERVER._socketClosed ? "stopped" : "running"));
   }, {
     subCommands: [
       // subcommand: start {{{2
       new Command(["start"], "start http server",
         function httpdStart(args) {
-          liberator.assert(modules.httpd._socketClosed, "[httpd] already started");
+          var server = modules.httpd.SERVER;
+          liberator.assert(server._socketClosed, "[httpd] already started");
 
           var port = args["--port"] ? args["--port"] : SERVER_CONFIG.port;
-          modules.httpd.start(port);
+          server.start(port);
           if ("--root" in args) {
             let dir = io.File(args["--root"]);
             if (dir.exists() && dir.isDirectory()) {
-              modules.httpd.registerDirectory("/", dir);
+              server.registerDirectory("/", dir);
             }
           }
         },{
@@ -422,8 +423,9 @@ commands.addUserCommand(["httpd"], "http server",
       // subcommand: stop {{{2
       new Command(["stop"], "stop http server",
         function httpdStop() {
-          liberator.assert(!modules.httpd._socketClosed, "[httpd] already stopped");
-          modules.httpd.stop(function() {
+          var server = modules.httpd.SERVER;
+          liberator.assert(!server._socketClosed, "[httpd] already stopped");
+          server.stop(function() {
             liberator.echomsg("[httpd] stopped http server");
           });
         }), // 2}}}
@@ -778,34 +780,34 @@ function dumpn() {}
 
 // createServer () {{{1
 function createServer () {
-  var httpd = new HttpServer();
+  var server = new HttpServer();
   for (var path in PATH_HANDLERS) {
-    httpd.registerPathHandler(path, PATH_HANDLERS[path]);
+    server.registerPathHandler(path, PATH_HANDLERS[path]);
   }
   for (var code in ERROR_HANDLERS) {
-    httpd.registerErrorHandler(code, ERROR_HANDLERS[code]);
+    server.registerErrorHandler(code, ERROR_HANDLERS[code]);
   }
   if (!SERVER_CONFIG.loopbackOnly && SERVER_CONFIG.hosts[0]) {
     let {port, hosts} = SERVER_CONFIG;
-    httpd._identity.setPrimary("http", hosts[0], port);
+    server._identity.setPrimary("http", hosts[0], port);
     for (let i = 1, len = hosts.length; i < len; ++i) {
-      httpd._identity.add("http", hosts[i], port);
+      server._identity.add("http", hosts[i], port);
     }
   }
   if (SERVER_CONFIG.documentRoot) {
     let rootDir = io.File(SERVER_CONFIG.documentRoot);
     if (rootDir.exists() && rootDir.isDirectory())
-      httpd.registerDirectory("/", rootDir);
+      server.registerDirectory("/", rootDir);
   }
-  httpd.PATH_HANDLERS = PATH_HANDLERS;
-  httpd.config = SERVER_CONFIG;
-  return httpd;
+  server.PATH_HANDLERS = PATH_HANDLERS;
+  server.config = SERVER_CONFIG;
+  return server;
 } /// 1}}}
 
 // init () {{{1
 (function init() {
-  if (modules.httpd && !modules.httpd._socketClosed) {
-    modules.httpd.stop(function(){
+  if (modules.httpd && !modules.httpd.SERVER._socketClosed) {
+    modules.httpd.SERVER.stop(function(){
       liberator.log("unloaded httpd");
       delete modules.httpd;
       init();
@@ -819,12 +821,20 @@ function createServer () {
     tmp.DEBUG = tmp.DEBUG_TIMESTAMP = SERVER_CONFIG.debug;
     dumpn = tmp.dumpn;
   }
-  var httpd = modules.httpd = createServer();
+  var server = createServer();
   if (SERVER_CONFIG.autoStart) {
     if (SERVER_CONFIG.loopbackOnly || !SERVER_CONFIG.hosts[0])
-      httpd.start(SERVER_CONFIG.port);
+      server.start(SERVER_CONFIG.port);
     else
-      httpd._start(SERVER_CONFIG.port, SERVER_CONFIG.hosts[0]);
+      server._start(SERVER_CONFIG.port, SERVER_CONFIG.hosts[0]);
   }
+  modules.httpd = {
+    SERVER: server,
+    CONFIG: SERVER_CONFIG,
+    PATH_HANDLERS: PATH_HANDLERS,
+    registerHtmlType: function httpd_registerHtmlType (type, handler) {
+      return this.PATH_HANDLERS["/html"].regsiterType(type, handler);
+    },
+  };
 }()); // 1}}}
 
