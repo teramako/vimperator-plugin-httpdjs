@@ -1,0 +1,3 @@
+[submodule "httpd/text-hatena"]
+	path = httpd/text-hatena
+	url = git://github.com/teramako/text-hatena.js.git
