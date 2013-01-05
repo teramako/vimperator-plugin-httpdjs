@@ -82,3 +82,6 @@ Cygwin 時は`path`パラメータを `cygpath -wa` で変換する必要があ�
 [pagedown]: http://code.google.com/p/pagedown/
 [instant-markdown-vim]: https://github.com/teramako/instant-markdown-vim
 
+#参考URL
+
+[HTTP サーバを立てる - Vimperator Advent Calendar 5日目 - Vimple Star Sprites - vimperatorグループ](http://vimperator.g.hatena.ne.jp/teramako/20121205/1354661511)
