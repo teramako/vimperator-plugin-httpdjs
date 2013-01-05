@@ -2,8 +2,17 @@
 
 Vimperator で Web サーバーを立てるよ！
 
-動作には [Mozillaのhttpd.js][mozhttpdjs] が必要です。
-`make -C httpd httpd.js` をして下さい。
+#インストール
+
+1. テキトウなところにgit cloneする。
+2. make -C httpd all で httpd.js と pagedown を取得
+3. Vimperator から `:source ~/リポジトリのディレクトリ/httpd.js` で読み込み
+  - デフォルトでは自動でhttpdが開始される(httpd.js 内の `SERVER_CONFIG.autoStart` 参照)
+  - ポートは8090(httpd.js 内の `SERVER_CONFIG.port` 参照)
+  - デフォルトではループバックアドレスからのみの接続しか受け付けないので、リモートからも接続できるようにするには
+    - `SERVER_CONFIG.loopbackOnly`を`false`に設定
+    - `SERVER_CONFIG.hosts`に`localhost`や`127.0.0.1`以外のホスト名またはIPアドレスを設定
+  - 停止は`:httpd stop`で。（逆に起動は`:httpd start`で）
 
 ##/vimperator
 
