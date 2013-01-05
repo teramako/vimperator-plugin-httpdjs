@@ -384,7 +384,7 @@ var HTML_HANDLER_TYPES = {
      get TextHatena() {
        var tmp = {},
            file = utils.getFileFromRoot(["text-hatena", "text-hatena.js"]);
-       Cu.import(services.get("io").newFileURI(file).spec, tmp);
+       services.get("scriptloader").loadSubScript(services.get("io").newFileURI(file).spec + "?" + Date.now(), tmp);
        delete this.TextHatena;
        return this.TextHatena = new tmp.TextHatena({ sectionanchor: "\u25A0" });
      },
